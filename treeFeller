@@ -16,7 +16,7 @@ function fuelDaemon()
     sleep(2)
     if (turtle.getFuelLevel() < 10) then
       print("Low on fuel! Refueling!")
-      shell.run("refuel", "1")
+      -- shell.run("refuel", "1")
       print("Refuel finished!")
     end
   end
@@ -25,7 +25,7 @@ end
 function compareForward()
   i = 1
   bool = false
-  while i <= comparAmount do
+  while i <= compareAmount do
     turtle.select(i)
     bool = bool or turtle.compareForward()
 	i = i + 1
@@ -36,7 +36,7 @@ end
 function compareUp()
   i = 1
   bool = false
-  while i <= comparAmount do
+  while i <= compareAmount do
     turtle.select(i)
     bool = bool or turtle.compareUp()
 	i = i + 1
@@ -47,7 +47,7 @@ end
 function compareDown()
   i = 1
   bool = false
-  while i <= comparAmount do
+  while i <= compareAmount do
     turtle.select(i)
     bool = bool or turtle.compareDown()
 	i = i + 1
@@ -205,7 +205,7 @@ function main()
     if dig() == true then
       forward()
 	  i = 0
-	  while digUp()==true i = i + 1 end
+	  while digUp()==true do i = i + 1 end
 	  lower(i)
     else
        if bool then turnLeft() else turnRight() end
