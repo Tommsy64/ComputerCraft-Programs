@@ -1,6 +1,34 @@
 args = {...}
 
 local verbose = true;
+local function vPrint(str, tColor, bColor)
+	if verbose == true then
+		if term.isColor() then
+			if tColor ~= nil then
+				term.setTextColor(tColor)
+			end
+			if bColor ~= nil then
+				term.setBackgroundColor(bColor)
+			end
+			print(str)
+			term.setBackgroundColor(colors.black)
+			term.setTextColor(colors.white)
+		else
+			print(str)
+		end
+	end
+end
+
+os.unloadAPI("cached_http")
+
+if fs.exists("lib/cached_http") then
+	os.loadAPI("lib/cached_http")
+else
+	vPrint("HTTP Cache library not found, downloading...")
+	fs.makeDir("lib")
+	shell.run("pastebin", "get qGX5RxDU lib/cached_http")
+	os.loadAPI("lib/cached_http")
+end
 
 local username, repoName, branch, directory
 local repoFiles = {}
@@ -49,19 +77,23 @@ local function get(repoFile, saveTo)
 	end
 end
 
-local function vPrint(str)
-	if verbose == true then
-		print(str)
-	end
-end
-
 i = 1
+x = 1
 while i <= #repoFiles do
 	if get(repoFiles[i], repoFiles[i]) then
 		vPrint("Succesfully downloaded "..repoFiles[i])
 		i = i + 1
+		x = 0
 	else
-		vPrint("Failed to download "..repoFiles[i].."! Retrying in 3 seconds")
-		sleep(3)
+		if x < 3 then
+			vPrint("Failed to download "..repoFiles[i].."! Trial "..x, colors.orange)
+			sleep(2)
+			x = x + 1
+		else
+			vPrint("Could not download "..repoFiles[i].." after "..x.." tries! Skipping!", colors.red)
+			i = i + 1
+		end
 	end
 end
+
+os.unloadAPI("cached_http")
