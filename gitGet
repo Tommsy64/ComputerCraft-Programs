@@ -46,18 +46,19 @@ local function getRunningProgramDir()
 	return runningProgram:sub( 1, #runningProgram - #programName )
 end
 
-local function download(url, saveTo)
-	local download = http.get(url)
-	if download then --checks if download returned true or false
-		local handle = download.readAll()
-		download.close()
-		local file = fs.open(fs.combine(shell.dir(), saveTo), "w")
-		file.write(handle)
-		file.close()
-		return true
-	else
-		return false
+local function save(data,file)
+	local file = shell.resolve(file)
+	if not (fs.exists(string.sub(file,1,#file - #fs.getName(file))) and fs.isDir(string.sub(file,1,#file - #fs.getName(file)))) then
+		if fs.exists(string.sub(file,1,#file - #fs.getName(file))) then fs.delete(string.sub(file,1,#file - #fs.getName(file))) end
+		fs.makeDir(string.sub(file,1,#file - #fs.getName(file)))
 	end
+	local f = fs.open(file,"w")
+	f.write(data)
+	f.close()
+end
+
+local function download(url, file)
+	save(http.get(url).readAll(),file)
 end
 
 local function pullDir(tbl)
