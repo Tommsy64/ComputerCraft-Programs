@@ -1,6 +1,7 @@
 args = {...}
-
 local verbose = true;
+local username, repoName, branch, directory
+
 local function vPrint(str, tColor, bColor)
 	if verbose == true then
 		if term.isColor() then
@@ -19,65 +20,38 @@ local function vPrint(str, tColor, bColor)
 	end
 end
 
-os.unloadAPI("cached_http")
-
-if fs.exists("lib/cached_http") then
-	os.loadAPI("lib/cached_http")
-else
-	vPrint("HTTP Cache library not found, downloading...")
-	fs.makeDir("lib")
-	shell.run("pastebin", "get qGX5RxDU lib/cached_http")
-	os.loadAPI("lib/cached_http")
-end
-
-if shell.getRunningProgram() ~= "lib/gitGet" then
-	firstDir = shell.getRunningProgram()
-	fs.move(firstDir, "lib/gitGet")
-
-	file = fs.open(firstDir, "w")
-	file.write('args = {...};i = 1;local strArgs;while(i <= #args)do if(strArgs == nil)then strArgs = args[i];else strArgs = strArgs.." "..args[i];end i = i + 1;end shell.run("lib/gitGet", strArgs);')
-	file.close()
-end
-
-local username, repoName, branch, directory
-local repoFiles = {}
-
-if (#args == 3) then
-	username = args[1]
-	repoName = args[2]
-	branch = args[3]
-	if args[4] ~= "/" then
-		directory = args[4]
-	end
-	repoFiles[1] = args[5]
-elseif (#args > 3) then		
-	username = args[1]
-	repoName = args[2]
-	branch = args[3]
-	if args[4] ~= "/" then
-		directory = args[4]
-	end
-	
-	i = 5
-	while (i <= #args) do
-		repoFiles[i-4] = args[i]
-		i = i + 1
-	end 
-else
-	error("Usage: gitGet <username> <repoName> <branch> <directory> <repoFiles>")
-end
-
-local function get(repoFile, saveTo)
-	local download
-	if directory == nil then
-		download = http.get("https://raw.github.com/"..username.."/"..repoName.."/"..branch.."/"..repoFile)
+function loadAPIs()
+	if fs.exists("/lib/cached_http") then
+		os.loadAPI("/lib/cached_http")
 	else
-		download = http.get("https://raw.github.com/"..username.."/"..repoName.."/"..branch.."/"..directory.."/"..repoFile)
+		vPrint("HTTP Cache library not found, downloading...", colors.orange)
+		fs.makeDir("/lib")
+		shell.run("pastebin", "get qGX5RxDU /lib/cached_http")
+		os.loadAPI("/lib/cached_http")
 	end
+
+	if fs.exists("/lib/json") then
+		os.loadAPI("/lib/json")
+	else
+		vPrint("JSON library not found, downloading...", colors.orange)
+		fs.makeDir("/lib")
+		shell.run("pastebin", "get 4nRg9CHU /lib/json")
+		os.loadAPI("/lib/json")
+	end
+end
+
+local function getRunningProgramDir()
+	local runningProgram = shell.resolveProgram("gitGet")
+	local programName = fs.getName(runningProgram)
+	return runningProgram:sub( 1, #runningProgram - #programName )
+end
+
+local function download(url, saveTo)
+	local download = http.get(url)
 	if download then --checks if download returned true or false
 		local handle = download.readAll()
 		download.close()
-		local file = fs.open(saveTo, "w")
+		local file = fs.open(fs.combine(shell.dir(), saveTo), "w")
 		file.write(handle)
 		file.close()
 		return true
@@ -86,23 +60,41 @@ local function get(repoFile, saveTo)
 	end
 end
 
-i = 1
-x = 1
-while i <= #repoFiles do
-	if get(repoFiles[i], repoFiles[i]) then
-		vPrint("Succesfully downloaded "..repoFiles[i])
-		i = i + 1
-		x = 0
-	else
-		if x < 3 then
-			vPrint("Failed to download "..repoFiles[i].."! Trial "..x, colors.orange)
-			sleep(2)
-			x = x + 1
+local function pullDir(tbl)
+	for k,v in pairs(tbl) do
+		if v.type == "dir" then
+			vPrint(""..v.path.."/")
+			pullDir(json.decode(http.get(v._links.self).readAll()))
 		else
-			vPrint("Could not download "..repoFiles[i].." after "..x.." tries! Skipping!", colors.red)
-			i = i + 1
+			vPrint(""..v.path)
+			download("https://raw.github.com/"..username.."/"..repoName.."/"..branch.."/"..v.path, fs.combine(directory,v.path))
 		end
 	end
 end
 
 os.unloadAPI("cached_http")
+os.unloadAPI("json")
+loadAPIs()
+
+if shell.getRunningProgram() ~= "lib/gitGet.lua" then
+	firstDir = shell.getRunningProgram()
+	fs.move(firstDir, "lib/gitGet.lua")
+	file = fs.open(firstDir, "w")
+	file.write('args = {...};i = 1;local strArgs;while(i <= #args)do if(strArgs == nil)then strArgs = args[i];else strArgs = strArgs.." "..args[i];end i = i + 1;end shell.run("/lib/gitGet.lua", strArgs);')
+	file.close()
+	shell.setAlias("gitGet", "gitGet.lua")
+end
+
+if #args < 2 then
+	vPrint("Usage:\n"..shell.getRunningProgram().." <user> <repo> [branch=master] [path=/]", colors.red) error()
+else
+	username = args[1]
+	repoName = args[2]
+	branch = args[3] or "master"
+	directory = args[4] or ""
+end
+
+pullDir(json.decode(http.get("https://api.github.com/repos/"..username.."/"..repoName.."/contents/?ref="..branch).readAll()))
+
+os.unloadAPI("cached_http")
+os.unloadAPI("json")
