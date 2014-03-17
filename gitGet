@@ -73,6 +73,10 @@ local function pullDir(tbl)
 	end
 end
 
+local function startPull()
+	return pullDir(json.decode(http.get("https://api.github.com/repos/"..username.."/"..repoName.."/contents/?ref="..branch).readAll()))
+end
+
 os.unloadAPI("cached_http")
 os.unloadAPI("json")
 loadAPIs()
@@ -95,7 +99,11 @@ else
 	directory = args[4] or ""
 end
 
-pullDir(json.decode(http.get("https://api.github.com/repos/"..username.."/"..repoName.."/contents/?ref="..branch).readAll()))
+if not pcall(startPull) then
+	vPrint("An severe error has accured!", colors.red)
+	vPrint("Most likely the file you are trying to download is too big.", colors.red)
+	error()
+end
 
 os.unloadAPI("cached_http")
 os.unloadAPI("json")
