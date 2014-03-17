@@ -82,7 +82,7 @@ if shell.getRunningProgram() ~= "lib/gitGet.lua" then
 	file = fs.open(firstDir, "w")
 	file.write('args = {...};i = 1;local strArgs;while(i <= #args)do if(strArgs == nil)then strArgs = args[i];else strArgs = strArgs.." "..args[i];end i = i + 1;end shell.run("/lib/gitGet.lua", strArgs);')
 	file.close()
-	shell.setAlias("gitGet", "gitGet.lua")
+	shell.setAlias("gitGet", "/lib/gitGet.lua")
 end
 
 if #args < 2 then
