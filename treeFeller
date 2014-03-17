@@ -4,7 +4,7 @@ if #arg < 1 then
   error()
 end
 
-local compareAmount = arg[1]
+local compareAmount = tonumber(arg[1])
 
 local x = 0
 local y = 0
@@ -15,9 +15,9 @@ function fuelDaemon()
   while (true) do
     sleep(2)
     if (turtle.getFuelLevel() < 10) then
-      print("Low on fuel! Refueling!")
+      -- print("Low on fuel! Refueling!")
       -- shell.run("refuel", "1")
-      print("Refuel finished!")
+      -- print("Refuel finished!")
     end
   end
 end
@@ -27,7 +27,7 @@ function compareForward()
   bool = false
   while i <= compareAmount do
     turtle.select(i)
-    bool = bool or turtle.compareForward()
+    bool = bool or turtle.compare()
 	i = i + 1
   end
   return bool
@@ -111,7 +111,7 @@ function forward(amount)
   return bool
 end
 
-function back()
+function back(amount)
   if amount == nil then
     amount = 1
   end
@@ -136,6 +136,7 @@ end
 
 function turnLeft(amount)
 	i = 0
+	if amount == nil then amount = 1 end
 	while i < amount do
 		turtle.turnLeft()
 		if f == 0 then
@@ -149,6 +150,7 @@ end
 
 function turnRight(amount)
 	i = 0
+	if amount == nil then amount = 1 end
 	while i < amount do
 		turtle.turnLeft()
 		if f == 3 then
