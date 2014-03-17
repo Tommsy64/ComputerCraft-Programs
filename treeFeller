@@ -1,0 +1,218 @@
+-- Please note: A feller is required to run this
+local arg = { ... }
+if #arg < 1 then
+  error()
+end
+
+local compareAmount = arg[1]
+
+local x = 0
+local y = 0
+local z = 0
+local f = 0
+
+function fuelDaemon()
+  while (true) do
+    sleep(2)
+    if (turtle.getFuelLevel() < 10) then
+      print("Low on fuel! Refueling!")
+      shell.run("refuel", "1")
+      print("Refuel finished!")
+    end
+  end
+end
+
+function compareForward()
+  i = 1
+  bool = false
+  while i <= comparAmount do
+    turtle.select(i)
+    bool = bool or turtle.compareForward()
+	i = i + 1
+  end
+  return bool
+end
+
+function compareUp()
+  i = 1
+  bool = false
+  while i <= comparAmount do
+    turtle.select(i)
+    bool = bool or turtle.compareUp()
+	i = i + 1
+  end
+  return bool
+end
+
+function compareDown()
+  i = 1
+  bool = false
+  while i <= comparAmount do
+    turtle.select(i)
+    bool = bool or turtle.compareDown()
+	i = i + 1
+  end
+  return bool
+end
+
+function dig()
+  if (compareForward() == true) then
+     return turtle.dig()
+  end
+  return false
+end
+
+function digUp()
+  if (compareUp() == true) then
+     return turtle.digUp()
+  end
+  return false
+end
+
+function digDown()
+  if (compareDown() == true) then
+     return turtle.digDown()
+  end
+  return false
+end
+
+function up()
+  bool = turtle.up()
+  y = y + 1
+  return bool
+end
+
+function down()
+  bool = turtle.down()
+  y = y - 1
+  return bool
+end
+
+function forward(amount)
+  if amount == nil then
+    amount = 1
+  end
+  i = 0
+  bool = false;
+  while i < amount do
+    bool = turtle.forward()
+    if f == 0 then
+      z = z + 1
+    elseif f == 1 then
+      x = x + 1
+    elseif f == 2 then
+      z = z - 1
+    elseif f == 3 then
+      x = x - 1
+    end
+	i = i + 1
+  end
+  
+  return bool
+end
+
+function back()
+  if amount == nil then
+    amount = 1
+  end
+  i = 0
+  bool = false;
+  while i < amount do
+    bool = turtle.forward()
+    if f == 0 then
+      z = z - 1
+    elseif f == 1 then
+      x = x - 1
+    elseif f == 2 then
+      z = z + 1
+    elseif f == 3 then
+      x = x + 1
+    end
+	i = i + 1
+  end
+  
+  return bool
+end
+
+function turnLeft(amount)
+	i = 0
+	while i < amount do
+		turtle.turnLeft()
+		if f == 0 then
+			f = 3
+		else
+			f = f - 1
+		end
+		i = i + 1
+	end
+end
+
+function turnRight(amount)
+	i = 0
+	while i < amount do
+		turtle.turnLeft()
+		if f == 3 then
+			f = 0
+		else
+			f = f + 1
+		end
+		i = i + 1
+	end
+end
+
+function turnTo(direction)
+  amount = f - direction
+  if direction == f then
+    return
+  elseif amount > 0 then
+	turnRight(amount)
+  elseif amount < 0 then
+	turnLeft(math.abs(amount))
+  end
+end
+
+function rise(amount)
+  for i = 1, amount, 1 do 
+    if turtle.up()==false then
+	  digUp()
+	  up()
+    end
+  end
+end
+
+function lower(amount)
+  for i = 1, amount, 1 do
+    if turtle.down()==false then
+      digDown()
+      down()
+    end
+  end 
+end
+
+function flip(bool)
+  if bool then
+    return false
+  else
+    return true
+  end
+end
+
+function main()
+  bool = false
+  while true == true do
+    bool = flip(bool)
+    while forward()==true do end
+    if dig() == true then
+      forward()
+	  i = 0
+	  while digUp()==true i = i + 1 end
+	  lower(i)
+    else
+       if bool then turnLeft() else turnRight() end
+	   forward()
+	   if bool then turnLeft() else turnRight() end
+	end
+  end
+end
+
+parallel.waitForAny(main, fuelDaemon)
