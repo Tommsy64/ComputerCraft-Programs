@@ -1,0 +1,58 @@
+args = {...}
+
+local verbose = true;
+
+local username, repoName, branch, directory
+local repoFiles = {}
+
+if (#args == 3) then
+	username = args[1]
+	repoName = args[2]
+	branch = args[3]
+	directory = args[4]
+	repoFiles[1] = args[5]
+elseif (#args > 3) then		
+	username = args[1]
+	repoName = args[2]
+	branch = args[3]
+	directory = args[4]
+	
+	i = 5
+	while (i <= #args) do
+		repoFiles[i-4] = args[i]
+		i = i + 1
+	end 
+else
+	error("Usage: gitGet <username> <repoName> <branch> <directory> <repoFiles>")
+end
+
+local function get(repoFile, saveTo)
+	local download = http.get("https://raw.github.com/"..username.."/"..repoName.."/"..branch.."/"..directory.."/"..repoFile)
+	if download then --checks if download returned true or false
+		local handle = download.readAll()
+		download.close()
+		local file = fs.open(saveTo, "w")
+		file.write(handle)
+		file.close()
+		return true
+	else
+		return false
+	end
+end
+
+local function vPrint(str)
+	if verbose == true then
+		print(str)
+	end
+end
+
+i = 1
+while i <= #repoFiles do
+	if get(repoFiles[i], repoFiles[i]) then
+		vPrint("Succesfully downloaded "..repoFiles[i])
+		i = i + 1
+	else
+		vPrint("Failed to download "..repoFiles[i].."! Retrying in 3 seconds")
+		sleep(3)
+	end
+end
