@@ -30,6 +30,15 @@ else
 	os.loadAPI("lib/cached_http")
 end
 
+if shell.getRunningProgram() ~= "lib/gitGet" then
+	firstDir = shell.getRunningProgram()
+	fs.move(firstDir, "lib/gitGet")
+
+	file = fs.open(firstDir, "w")
+	file.write('args = {...};i = 1;local strArgs;while(i <= #args)do if(strArgs == nil)then strArgs = args[i];else strArgs = strArgs.." "..args[i];end i = i + 1;end shell.run("lib/gitGet", strArgs);')
+	file.close()
+end
+
 local username, repoName, branch, directory
 local repoFiles = {}
 
