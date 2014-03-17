@@ -9,13 +9,17 @@ if (#args == 3) then
 	username = args[1]
 	repoName = args[2]
 	branch = args[3]
-	directory = args[4]
+	if args[4] ~= "/" then
+		directory = args[4]
+	end
 	repoFiles[1] = args[5]
 elseif (#args > 3) then		
 	username = args[1]
 	repoName = args[2]
 	branch = args[3]
-	directory = args[4]
+	if args[4] ~= "/" then
+		directory = args[4]
+	end
 	
 	i = 5
 	while (i <= #args) do
@@ -27,7 +31,12 @@ else
 end
 
 local function get(repoFile, saveTo)
-	local download = http.get("https://raw.github.com/"..username.."/"..repoName.."/"..branch.."/"..directory.."/"..repoFile)
+	local download
+	if directory == nil then
+		download = http.get("https://raw.github.com/"..username.."/"..repoName.."/"..branch.."/"..repoFile)
+	else
+		download = http.get("https://raw.github.com/"..username.."/"..repoName.."/"..branch.."/"..directory.."/"..repoFile)
+	end
 	if download then --checks if download returned true or false
 		local handle = download.readAll()
 		download.close()
