@@ -175,7 +175,7 @@ end
 
 function rise(amount)
   for i = 1, amount, 1 do 
-    if turtle.up()==false then
+    if up()==false then
 	  digUp()
 	  up()
     end
@@ -184,7 +184,7 @@ end
 
 function lower(amount)
   for i = 1, amount, 1 do
-    if turtle.down()==false then
+    if down()==false then
       digDown()
       down()
     end
